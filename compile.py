@@ -17,10 +17,9 @@ LinkPython = False
 UsePyPy = False
 
 def link(outfile, infiles, options):
-	if not LinkPython:
-		options += ["-undefined", "dynamic_lookup"]
 	if sys.platform == "darwin":
 		if LinkPython: options += ["-framework","Python"]
+		else: options += ["-undefined", "dynamic_lookup"]
 		sysExec(
 			["libtool", "-dynamic", "-o", outfile] +
 			infiles +
@@ -30,7 +29,7 @@ def link(outfile, infiles, options):
 	else:
 		if LinkPython: options += ["-lpython2.7"]
 		sysExec(
-			["ld"] +
+			["c++"] +
 			["-L/usr/local/lib"] +
 			infiles +
 			options +
@@ -53,7 +52,7 @@ def cc(files, options):
 	files = [f for f in files if f not in cppfiles]
 	if cppfiles:
 		cppoptions = ["-std=c++11"]
-		sysExec(["cc"] + options + cppoptions + CFLAGS + ["-c"] + cppfiles)		
+		sysExec(["c++"] + options + cppoptions + CFLAGS + ["-c"] + cppfiles)
 	sysExec(["cc"] + options + CFLAGS + ["-c"] + files)
 
 sysExec(["mkdir","-p","build"])
@@ -69,6 +68,7 @@ cc(
 	ffmpegFiles,
 	[
 		"-DHAVE_CONFIG_H",
+		"-D__STDC_LIMIT_MACROS",
 		"-g",
 	] +
 	(["-I", "../chromaprint"] if staticChromaprint else [])
@@ -95,4 +95,4 @@ if sys.platform == "darwin":
 		[os.path.splitext(os.path.basename(fn))[0] + ".o" for fn in guiCocoaCommonFiles],
 		["-framework", "Cocoa"]
 	)
-	
+
